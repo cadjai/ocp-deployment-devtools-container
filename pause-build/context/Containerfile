@@ -1,0 +1,30 @@
+ARG BASE_IMAGE="registry.redhat.io/ubi9-micro:latest"
+ARG PYCMD="/usr/bin/python3"
+ARG PKGMGR="/usr/bin/microdnf"
+ARG SUMMARY="Pause Container for running pause within pods"
+ARG NAME="Pause Container Image"
+ARG MAINTAINER="The Platform team <platformteam@test.org>"
+
+FROM $BASE_IMAGE 
+USER root
+ARG BASE_IMAGE
+ARG PYCMD
+ARG PKGMGR
+ARG SUMMARY
+ARG NAME
+ARG MAINTAINER
+
+LABEL summary="$SUMMARY" \
+      description="$SUMMARY" \
+      io.k8s.description="$SUMMARY" \
+      io.k8s.display-name="$NAME" \
+      name="$NAME" \
+      version="1" \
+      usage="podman run -it --rm --name my-pause-test localhost/pause bash " \
+      maintainer="$MAINTAINER"
+
+
+STOPSIGNAL SIGRTMIN+3
+
+ENTRYPOINT ["sleep"]
+CMD ["infinity"]

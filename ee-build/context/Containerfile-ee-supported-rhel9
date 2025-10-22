@@ -1,0 +1,132 @@
+ARG EE_BASE_IMAGE="registry.redhat.io/ansible-automation-platform-24/ee-supported-rhel9:latest"
+ARG PYCMD="/usr/bin/python3"
+ARG PKGMGR_PRESERVE_CACHE=""
+ARG ANSIBLE_GALAXY_CLI_COLLECTION_OPTS=""
+ARG ANSIBLE_GALAXY_CLI_ROLE_OPTS=""
+ARG ANSIBLE_INSTALL_REFS="ansible-core>=2.15.0rc2,<2.16 ansible-runner"
+ARG PKGMGR="/usr/bin/microdnf"
+ARG SUMMARY="DPaaS Execution Environment for running Ansible Playbooks"
+ARG NAME="dpaas-ee-supported-rhel9"
+ARG MAINTAINER="The DPaaS Platform team"
+
+ARG SUMMARY
+ARG NAME
+ARG MAINTAINER
+
+LABEL summary="$SUMMARY" \
+      description="$SUMMARY" \
+      io.k8s.description="$SUMMARY" \
+      io.k8s.display-name="$NAME" \
+      name="$NAME" \
+      version="1" \
+      usage="podman run -it --rm --name my-ee-test localhost/dpaas-ee-supported-rhel9 bash " \
+      maintainer="$MAINTAINER"
+
+# Base build stage
+FROM $EE_BASE_IMAGE as base
+USER root
+ENV PIP_BREAK_SYSTEM_PACKAGES=1
+ARG EE_BASE_IMAGE
+ARG PYCMD
+ARG PKGMGR_PRESERVE_CACHE
+ARG ANSIBLE_GALAXY_CLI_COLLECTION_OPTS
+ARG ANSIBLE_GALAXY_CLI_ROLE_OPTS
+ARG ANSIBLE_INSTALL_REFS
+ARG PKGMGR
+
+COPY _build/scripts/ /output/scripts/
+COPY _build/scripts/entrypoint /opt/builder/bin/entrypoint
+
+RUN /output/scripts/pip_install $PYCMD
+RUN $PYCMD -m pip install --no-cache-dir $ANSIBLE_INSTALL_REFS
+RUN $PYCMD -m pip install -U pip
+
+# Galaxy build stage
+FROM base as galaxy
+ARG EE_BASE_IMAGE
+ARG PYCMD
+ARG PKGMGR_PRESERVE_CACHE
+ARG ANSIBLE_GALAXY_CLI_COLLECTION_OPTS
+ARG ANSIBLE_GALAXY_CLI_ROLE_OPTS
+ARG ANSIBLE_INSTALL_REFS
+ARG PKGMGR
+
+RUN /output/scripts/check_galaxy
+COPY _build /build
+WORKDIR /build
+
+RUN mkdir -p /usr/share/ansible
+RUN ansible-galaxy role install $ANSIBLE_GALAXY_CLI_ROLE_OPTS -r requirements.yml --roles-path "/usr/share/ansible/roles"
+RUN ANSIBLE_GALAXY_DISABLE_GPG_VERIFY=1 ansible-galaxy collection install $ANSIBLE_GALAXY_CLI_COLLECTION_OPTS -r requirements.yml --collections-path "/usr/share/ansible/collections"
+
+# Builder build stage
+FROM base as builder
+ENV PIP_BREAK_SYSTEM_PACKAGES=1
+WORKDIR /build
+ARG EE_BASE_IMAGE
+ARG PYCMD
+ARG PKGMGR_PRESERVE_CACHE
+ARG ANSIBLE_GALAXY_CLI_COLLECTION_OPTS
+ARG ANSIBLE_GALAXY_CLI_ROLE_OPTS
+ARG ANSIBLE_INSTALL_REFS
+ARG PKGMGR
+
+RUN $PYCMD -m pip install --no-cache-dir bindep pyyaml packaging
+
+COPY --from=galaxy /usr/share/ansible /usr/share/ansible
+
+COPY _build/requirements.txt requirements.txt
+COPY _build/bindep.txt bindep.txt
+RUN $PYCMD /output/scripts/introspect.py introspect --user-pip=requirements.txt --user-bindep=bindep.txt --write-bindep=/tmp/src/bindep.txt --write-pip=/tmp/src/requirements.txt
+RUN /output/scripts/assemble
+
+# Binary Install Stage
+FROM base as install_binaries
+COPY _build/clients /build/clients
+RUN ls -la /build /build/clients
+#Install aws cli
+RUN unzip /build/clients/awscli.zip -d /aws
+RUN /aws/aws/install
+#Install terraform
+RUN unzip /build/clients/terraform.zip -d /bin
+RUN unzip /build/clients/terraform-provider-aws.zip -d /bin
+#Install ocp cli
+RUN tar xzf /build/clients/openshift-client-linux.tar.gz -C /bin
+#Install oc-mirror
+RUN tar xzf /build/clients/oc-mirror.tar.gz -C /bin
+RUN chmod a+x /bin/oc-mirror
+#Install helm
+RUN tar xzf /build/clients/helm.tar.gz -C /tmp  --no-same-owner
+RUN mv /tmp/helm-linux-amd64 /bin/helm
+RUN chmod a+x /bin/helm
+
+
+# Final build stage
+FROM base as final
+ENV PIP_BREAK_SYSTEM_PACKAGES=1
+ARG EE_BASE_IMAGE
+ARG PYCMD
+ARG PKGMGR_PRESERVE_CACHE
+ARG ANSIBLE_GALAXY_CLI_COLLECTION_OPTS
+ARG ANSIBLE_GALAXY_CLI_ROLE_OPTS
+ARG ANSIBLE_INSTALL_REFS
+ARG PKGMGR
+
+RUN /output/scripts/check_ansible $PYCMD
+
+COPY --from=galaxy /usr/share/ansible /usr/share/ansible
+
+COPY --from=builder /output/ /output/
+RUN /output/scripts/install-from-bindep && rm -rf /output/wheels
+RUN chmod ug+rw /etc/passwd
+RUN mkdir -p /runner && chgrp 0 /runner && chmod -R ug+rwx /runner
+WORKDIR /runner
+RUN $PYCMD -m pip install --no-cache-dir 'dumb-init==1.2.5'
+COPY --from=quay.io/ansible/receptor:devel /usr/bin/receptor /usr/bin/receptor
+RUN mkdir -p /var/run/receptor
+RUN git lfs install --system
+RUN rm -rf /output
+LABEL ansible-execution-environment=true
+USER 1000
+ENTRYPOINT ["/opt/builder/bin/entrypoint", "dumb-init"]
+CMD ["bash"]

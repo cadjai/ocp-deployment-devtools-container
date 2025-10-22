@@ -1,0 +1,64 @@
+---
+### Client download controlling variables
+download_clients: true #Downlaod if not locally caches already
+download_local: false #If you are disconnected and must use copies in artifactory
+
+clients:
+  oc-install:
+    url: 'https://mirror.openshift.com/pub/openshift-v4/clients/ocp/'
+    localurl: 'https://{{ local_binary_location }}/'
+    pkg_version: 'latest'
+    pkg_name: 'openshift-install'
+    pkg_suffix: '.tar.gz'
+    localpkg_suffix: '.tar.gz'
+    pkg_extention: '.tar.gz'
+  oc-client:
+    url: 'https://mirror.openshift.com/pub/openshift-v4/clients/ocp/'
+    localurl: 'https://{{ local_binary_location }}/'
+    pkg_version: 'latest'
+    pkg_name: 'openshift-client-linux'
+    pkg_suffix: '.tar.gz'
+    localpkg_suffix: '.tar.gz'
+    pkg_extention: '.tar.gz'
+  oc-mirror:
+    url: 'https://mirror.openshift.com/pub/openshift-v4/clients/ocp/'
+    localurl: 'https://{{ local_binary_location }}/'
+    pkg_version: '4.11.48'
+    pkg_name: 'oc-mirror'
+    pkg_suffix: '.tar.gz'
+    localpkg_suffix: '.tar.gz'
+    pkg_extention: '.tar.gz'
+  helm:
+    url: 'https://developers.redhat.com/content-gateway/file/pub/openshift-v4/clients/helm/'
+    localurl: 'https://{{ local_binary_location }}/'
+    pkg_version: '3.11.1'
+    pkg_name: 'helm'
+    pkg_suffix: '-linux-amd64.tar.gz'
+    localpkg_suffix: '-linux-amd64.tar.gz'
+    pkg_extention: '.tar.gz'
+  terraform:
+    url: 'https://releases.hashicorp.com/terraform/'
+    localurl: 'https://{{ local_binary_location }}/'
+    pkg_version: '0.13.7'
+    pkg_name: 'terraform'
+    pkg_suffix: '_0.13.7_linux_amd64.zip'
+    localpkg_suffix: '_0.13.7_linux_amd64.zip'
+    pkg_extention: '.zip'
+  terraform-provider-aws:
+    url: 'https://releases.hashicorp.com/terraform-provider-aws/'
+    localurl: 'https://{{ local_binary_location }}/'
+    pkg_version: '5.88.0'
+    pkg_name: 'terraform-provider-aws'
+    pkg_suffix: '_5.88.0_linux_amd64.zip'
+    localpkg_suffix: '_5.88.0_linux_amd64.zip'
+    pkg_extention: '.zip'
+  awscliv2:
+    url: 'https://awscli.amazonaws.com/'
+    localurl: 'https://{{ local_binary_location }}/'
+    pkg_version: ''
+    pkg_name: 'awscli'
+    pkg_suffix: '-exe-linux-x86_64.zip'
+    localpkg_suffix: '-exe-linux-x86_64.zip'
+    pkg_extention: '.zip'
+
+
