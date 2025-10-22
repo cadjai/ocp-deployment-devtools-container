@@ -12,7 +12,6 @@ disable_layer_caching: 'false'
 squash_layers: 'false'
 
 registry_auth_config: ''
-download_clients: 'false'
 clients_dir: '{{ tooling_image_build_context_dir_prefix }}/{{ tooling_image_build_context_dir }}/_build/clients'
 tooling_image_name: 'ocp-devops-tooling'
 registry_host_fqdn: ''
