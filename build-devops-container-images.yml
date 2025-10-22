@@ -12,12 +12,12 @@
 
   pre_tasks:
     - name: '{{ ansible_name_module }} | Ensure podman is installed on host'
-      shell: >
+      ansible.builtin.shell: >
         which podman
       ignore_errors: yes
       register: podman_binary
 
-    - assert:
+    - ansible.builtin.assert:
         that:
           - podman_binary is defined
           - podman_binary.rc is defined 
@@ -35,25 +35,25 @@
         - clients.items() | length > 0 
       block:
         - name: '{{ ansible_name_module }} | Set Client packages download destination'
-          set_fact:
+          ansible.builtin.set_fact:
             clients_dir: "{{ playbook_dir }}/{{ tooling_image_build_context_dir_prefix }}/context/_build/clients"
           when:
             - not clients_dir is defined or clients_dir == ''
 
         - name: '{{ ansible_name_module }} | Ensure Client packages download destination exists'
-          file:
+          ansible.builtin.file:
             path: "{{ clients_dir }}"
             state: directory
             mode: '0755'
 
-        - debug:
+        - ansible.builtin.debug:
             msg:
               - "{{ item.value.url }}{{ (item.value.pkg_version + '/') if item.value.pkg_version is defined and item.value.pkg_version != '' else ''}}{{ item.value.pkg_name }}{{ item.value.pkg_suffix }}"
               - "{{ clients_dir }}/{{ item.value.pkg_name }}{{ item.value.pkg_extention }}"
           with_dict: "{{ clients }}"
 
         - name: '{{ ansible_name_module }} | Download binaries'
-          get_url:
+          ansible.builtin.get_url:
             url: "{{ item.value.url }}{{ (item.value.pkg_version + '/') if item.value.pkg_version is defined and item.value.pkg_version != '' else ''}}{{ item.value.pkg_name }}{{ item.value.pkg_suffix }}"
             dest: "{{ clients_dir }}/{{ item.value.pkg_name }}{{ item.value.pkg_extention }}"
           with_dict:
@@ -64,7 +64,7 @@
             - not download_local is defined or not download_local | bool
 
         - name: '{{ ansible_name_module }} | Download binaries from local repository'
-          get_url:
+          ansible.builtin.get_url:
             url: "{{ item.value.localurl }}{{ item.value.pkg_name }}{{ item.value.localpkg_suffix }}"
             dest: "{{ clients_dir }}/{{ item.value.pkg_name }}{{ item.value.pkg_extention }}"
             url_username: "{{ registry_admin_username }}"
@@ -80,64 +80,75 @@
             - download_local is defined
             - download_local | bool
 
+    - name: '{{ ansible_name_module }} | Render ansible.cfg for EE container if applicable'
+      when:
+        - configure_ansible_cfg is defined
+        - configure_ansible_cfg | bool
+      block: 
+        - name: '{{ ansible_name_module }} | Render Ansible.cfg file'
+          ansible.builtin.template:
+            src: "templates/galaxy.cfg.j2"
+            dest: "{{ tooling_image_build_context_dir }}/_build/scripts/ansible.cfg"
+            force: true
+
     - name: '{{ ansible_name_module }} | Set Tomorrow Date fact'
-      set_fact:
+      ansible.builtin.set_fact:
         today_date: "{{ lookup('pipe', ' date +%Y%m%d') }}"
 
     - name: '{{ ansible_name_module }} | Set OCP Deploy Tooling Image name'
-      set_fact:
+      ansible.builtin.set_fact:
         tooling_image_name: "ocp-devops-tooling-ee-supported-rhel8"
       when:
         - not tooling_image_name is defined or tooling_image_name == ''
 
     - name: '{{ ansible_name_module }} | Set Tooling Image Build Containerfile'
-      set_fact:
+      ansible.builtin.set_fact:
         tooling_image_containerfile: "{{ playbook_dir }}/{{ tooling_image_build_context_dir }}/Containerfile"
       when:
         - not tooling_image_containerfile is defined or tooling_image_containerfile == ''
 
     - name: '{{ ansible_name_module }} | Set Tooling Image Build context dir'
-      set_fact:
+      ansible.builtin.set_fact:
         tooling_image_build_context_dir: "{{ playbook_dir }}/{{ tooling_image_build_context_dir }}"
       when:
         - not tooling_image_build_context_dir is defined or tooling_image_build_context_dir == ''
 
     - name: '{{ ansible_name_module }} | Set Tooling Image Build registry_host_fqdn'
-      set_fact:
+      ansible.builtin.set_fact:
         registry_host_fqdn: "localhost"
       when:
         - not registry_host_fqdn is defined or registry_host_fqdn == ''
 
     - name: '{{ ansible_name_module }} | Set Tooling Image Build base image arg'
-      set_fact:
+      ansible.builtin.set_fact:
         tooling_image_build_arg_base_image: "{{ ('--build-arg BASE_IMAGE=' + tooling_image_build_arg_base_image_name + ' ') if tooling_image_build_arg_base_image_name is defined and tooling_image_build_arg_base_image_name != '' else '' }}"
 
     - name: '{{ ansible_name_module }} | Set Tooling Image Build base image label summary arg'
-      set_fact:
+      ansible.builtin.set_fact:
         tooling_image_build_arg_image_label_summary: "{{ ('--build-arg SUMMARY=' +  tooling_image_build_arg_image_label_summary_value + ' ') if tooling_image_build_arg_image_label_summary_value is defined and tooling_image_build_arg_image_label_summary_value != '' else '' }}"
 
     - name: '{{ ansible_name_module }} | Set Tooling Image Build base image label name arg'
-      set_fact:
+      ansible.builtin.set_fact:
         tooling_image_build_arg_image_label_name: "{{ ('--build-arg  NAME=' + tooling_image_build_arg_image_label_name_value + ' ') if  tooling_image_build_arg_image_label_name_value is defined and  tooling_image_build_arg_image_label_name_value != '' else '' }}"
 
     - name: '{{ ansible_name_module }} | Set Tooling Image Build base image label maintainer arg'
-      set_fact:
+      ansible.builtin.set_fact:
         tooling_image_build_arg_image_label_maintainer: "{{ ('--build-arg MAINTAINER=' + tooling_image_build_arg_image_label_maintainer_value + ' ') if tooling_image_build_arg_image_label_maintainer_value is defined and tooling_image_build_arg_image_label_maintainer_value != '' else '' }}"
 
     - name: '{{ ansible_name_module }} | Set Tooling Image Build base image build arg'
-      set_fact:
+      ansible.builtin.set_fact:
         tooling_image_build_arg: "{{ tooling_image_build_arg_base_image +  tooling_image_build_arg_image_label_summary + tooling_image_build_arg_image_label_name  + tooling_image_build_arg_image_label_maintainer }}"
 
     - name: '{{ ansible_name_module }} | Set Tooling Image Build base image diable layer caching arg'
-      set_fact:
+      ansible.builtin.set_fact:
         tooling_image_build_arg_nocache: "{{ ('--no-cache ') if disable_layer_caching is defined and  disable_layer_caching | bool else '' }}"
 
     - name: '{{ ansible_name_module }} | Set Tooling Image Build base image diable layer caching arg'
-      set_fact:
+      ansible.builtin.set_fact:
         tooling_image_build_arg_layersquash: "{{ ('--squash-all ') if squash_layers is defined and squash_layers | bool else '' }}"
 
     - name: '{{ ansible_name_module }} | download oc compliance binary to be included into the build  Image'
-      shell: >
+      ansible.builtin.shell: >
         podman  run --authfile {{ registry_auth_config }}  --rm  -v {{ playbook_dir }}/context/_build:/mnt/out:Z {{ scan_results_export_image | default('registry.redhat.io/compliance/oc-compliance-rhel8:stable', true) }} /bin/cp /usr/bin/oc-compliance /mnt/out
       when:
         - push_tooling_image is defined
@@ -145,12 +156,12 @@
       register: oc_compliance_binary_downloaded 
 
     - name: '{{ ansible_name_module }} | build Devspace Tooling container Image'
-      shell: >
+      ansible.builtin.shell: >
         podman --log-level=debug build {{ tooling_image_build_arg_nocache }} {{ tooling_image_build_arg_layersquash }} -f {{ tooling_image_containerfile }} -t {{ registry_host_fqdn }}/{{ local_repository }}/{{ tooling_image_subrepository }}/{{ tooling_image_name }}:latest-{{ today_date }} {{ tooling_image_build_arg }} --runtime-flag debug {{ tooling_image_build_context_dir }} 
       register: bastion_container_built
 
     - name: '{{ ansible_name_module }} | tag OCP Deployment Tooling container Image'
-      shell: >
+      ansible.builtin.shell: >
         podman tag {{ registry_host_fqdn }}/{{ local_repository }}/{{ tooling_image_subrepository }}/{{ tooling_image_name }}:latest-{{ today_date }} {{ registry_host_fqdn }}/{{ local_repository }}/{{ tooling_image_subrepository }}/{{ tooling_image_name }}:latest
       when:
         - push_tooling_image is defined
@@ -158,7 +169,7 @@
       register: bastion_container_tagged
 
     - name: '{{ ansible_name_module }} | push OCP Deployment Tooling container Image'
-      shell: >
+      ansible.builtin.shell: >
         podman push --authfile {{ registry_auth_config }} {{ item }} 
       loop:
         - "{{ registry_host_fqdn }}/{{ local_repository }}/{{ tooling_image_subrepository }}/{{ tooling_image_name }}:latest-{{ today_date }}"
@@ -169,7 +180,7 @@
       register: bastion_container_pushed
 
     - name: '{{ ansible_name_module }} | podman:save | save OCP Deployment Tooling image'
-      shell: >
+      ansible.builtin.shell: >
         podman save -o {{ dir_bundle_location }}/{{ tooling_image_name }}-latest-image-{{ today_date }}.tar \
           {{ registry_host_fqdn }}/{{ local_repository }}/{{ tooling_image_subrepository }}/{{ tooling_image_name }}:latest-{{ today_date }} 
       register: bastion_container_saved

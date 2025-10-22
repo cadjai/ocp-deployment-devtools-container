@@ -1,0 +1,12 @@
+[galaxy]
+server_list = {{ galaxy_repos | selectattr('name') | map(attribute='name' | join(', ') }}
+
+{% for gserv in galaxy_repos %}
+{% if gserv.name is defined and gserv.name != '' and gserv.path is defined and gserv.path != '' %}
+
+[galaxy_server.{{ gserv.name}}]
+url={{ hub_url }}{{ hub_content_path_prefix }}{{ gserv.path }}/
+token={{ hub_token }}
+
+{% endif %}
+{$ endfor %}
