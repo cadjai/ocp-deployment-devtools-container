@@ -1,10 +1,10 @@
 ---
 ## Image build optional variables
-tooling_image_name: 'ocp-devops-tooling-ee-supported-rhel8'
+tooling_image_name: 'ocp-devops-tooling-ee-supported-rhel9'
 tooling_image_build_context_dir_prefix: 'ee-build'
 tooling_image_build_context_dir: '{{ tooling_image_build_context_dir_prefix }}/context'
 tooling_image_containerfile: '{{ tooling_image_build_context_dir }}/Containerfile'
-tooling_image_build_arg_base_image_name: ''
+tooling_image_build_arg_base_image_name: 'registry.redhat.io/ansible-automation-platform-24/ee-supported-rhel9:latest'
 tooling_image_build_arg_image_label_summary_value: ''
 tooling_image_build_arg_image_label_name_value: ''
 tooling_image_build_arg_image_label_maintainer_value: ''

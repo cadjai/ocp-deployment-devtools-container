@@ -23,15 +23,23 @@ clients:
   oc-mirror:
     url: 'https://mirror.openshift.com/pub/openshift-v4/clients/ocp/'
     localurl: 'https://{{ local_binary_location }}/'
-    pkg_version: '4.11.48'
+    pkg_version: 'latest'
     pkg_name: 'oc-mirror'
     pkg_suffix: '.tar.gz'
     localpkg_suffix: '.tar.gz'
     pkg_extention: '.tar.gz'
-  helm:
-    url: 'https://developers.redhat.com/content-gateway/file/pub/openshift-v4/clients/helm/'
+  ccoctl:
+    url: 'https://mirror.openshift.com/pub/openshift-v4/clients/ocp/'
     localurl: 'https://{{ local_binary_location }}/'
-    pkg_version: '3.11.1'
+    pkg_version: 'latest'
+    pkg_name: 'ccoctl-linux-rhel'
+    pkg_suffix: '.tar.gz'
+    localpkg_suffix: '.tar.gz'
+    pkg_extention: '.tar.gz'
+  helm:
+    url: 'https://mirror.openshift.com/pub/openshift-v4/clients/helm/'
+    localurl: 'https://{{ local_binary_location }}/'
+    pkg_version: 'latest'
     pkg_name: 'helm'
     pkg_suffix: '-linux-amd64.tar.gz'
     localpkg_suffix: '-linux-amd64.tar.gz'

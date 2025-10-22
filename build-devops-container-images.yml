@@ -2,8 +2,8 @@
 - name: ' Konductor | Provision UPI Infra | build-devops-container-images.yml' 
   hosts: localhost 
   vars_files:
+    #- 'vars/vault.yml'
     - 'vars/container-build.yml'
-    - 'vars/vault.yml'
     - 'vars/clients.yml'
   vars:
     ansible_python_interpreter: /usr/bin/python3

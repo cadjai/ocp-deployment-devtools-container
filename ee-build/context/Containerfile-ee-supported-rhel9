@@ -5,9 +5,9 @@ ARG ANSIBLE_GALAXY_CLI_COLLECTION_OPTS=""
 ARG ANSIBLE_GALAXY_CLI_ROLE_OPTS=""
 ARG ANSIBLE_INSTALL_REFS="ansible-core>=2.15.0rc2,<2.16 ansible-runner"
 ARG PKGMGR="/usr/bin/microdnf"
-ARG SUMMARY="DPaaS Execution Environment for running Ansible Playbooks"
-ARG NAME="dpaas-ee-supported-rhel9"
-ARG MAINTAINER="The DPaaS Platform team"
+ARG SUMMARY="Execution Environment for running Ansible Playbooks"
+ARG NAME="ocp-devops-ee-supported-rhel9"
+ARG MAINTAINER="The Platform team"
 
 ARG SUMMARY
 ARG NAME
@@ -19,7 +19,7 @@ LABEL summary="$SUMMARY" \
       io.k8s.display-name="$NAME" \
       name="$NAME" \
       version="1" \
-      usage="podman run -it --rm --name my-ee-test localhost/dpaas-ee-supported-rhel9 bash " \
+      usage="podman run -it --rm --name my-ocp-devops-ee-test localhost/devops-ee-supported-rhel9 bash " \
       maintainer="$MAINTAINER"
 
 # Base build stage
