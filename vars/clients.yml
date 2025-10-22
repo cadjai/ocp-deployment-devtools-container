@@ -32,7 +32,7 @@ clients:
     url: 'https://mirror.openshift.com/pub/openshift-v4/clients/ocp/'
     localurl: 'https://{{ local_binary_location }}/'
     pkg_version: 'latest'
-    pkg_name: 'ccoctl-linux-rhel'
+    pkg_name: 'ccoctl-linux-rhel9'
     pkg_suffix: '.tar.gz'
     localpkg_suffix: '.tar.gz'
     pkg_extention: '.tar.gz'
