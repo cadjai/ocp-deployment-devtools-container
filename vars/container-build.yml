@@ -13,7 +13,6 @@ squash_layers: 'false'
 
 registry_auth_config: ''
 download_clients: 'false'
-clients_dir: '{{ tooling_image_build_context_dir_prefix }}/{{ tooling_image_build_context_dir }}/_build/clients'
 tooling_image_name: 'ocp-devops-tooling'
 registry_host_fqdn: ''
 local_repository: 'openshift4'
@@ -35,3 +34,4 @@ galaxy_repos:
     path: rh-certified
   - name: community
     path: community
+dir_bundle_location: ''
