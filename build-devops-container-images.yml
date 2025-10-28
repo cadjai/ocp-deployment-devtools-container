@@ -142,9 +142,11 @@
       when:
         - push_tooling_image is defined
         - push_tooling_image | bool 
+        - include_oc_compliance is defined
+        - include_oc_compliance | bool 
       register: oc_compliance_binary_downloaded 
 
-    - name: '{{ ansible_name_module }} | build Devspace Tooling container Image'
+    - name: '{{ ansible_name_module }} | build OCP Deployment Tooling container Image'
       shell: >
         podman --log-level=debug build {{ tooling_image_build_arg_nocache }} {{ tooling_image_build_arg_layersquash }} -f {{ tooling_image_containerfile }} -t {{ registry_host_fqdn }}/{{ local_repository }}/{{ tooling_image_subrepository }}/{{ tooling_image_name }}:latest-{{ today_date }} {{ tooling_image_build_arg }} --runtime-flag debug {{ tooling_image_build_context_dir }} 
       register: bastion_container_built
