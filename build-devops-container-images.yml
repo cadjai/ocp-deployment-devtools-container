@@ -85,11 +85,23 @@
         - configure_ansible_cfg is defined
         - configure_ansible_cfg | bool
       block: 
+        ### use this when building on a connected host pulling from the RH automation hub
+        - name: '{{ ansible_name_module }} | Render Ansible.cfg file'
+          ansible.builtin.template:
+            src: "templates/galaxy-automation-hub.cfg.j2"
+            dest: "{{ tooling_image_build_context_dir }}/_build/scripts/ansible.cfg"
+            force: true
+          when:
+            - use_automation_hub is defined 
+            - use_automation_hub | bool 
+
         - name: '{{ ansible_name_module }} | Render Ansible.cfg file'
           ansible.builtin.template:
             src: "templates/galaxy.cfg.j2"
             dest: "{{ tooling_image_build_context_dir }}/_build/scripts/ansible.cfg"
             force: true
+          when:
+            - not use_automation_hub is defined  or not use_automation_hub | bool 
 
     - name: '{{ ansible_name_module }} | Set Tomorrow Date fact'
       ansible.builtin.set_fact:
