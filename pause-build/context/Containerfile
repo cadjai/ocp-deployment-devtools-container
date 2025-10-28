@@ -1,7 +1,7 @@
 ARG BASE_IMAGE="registry.redhat.io/ubi9-micro:latest"
 ARG PYCMD="/usr/bin/python3"
 ARG PKGMGR="/usr/bin/microdnf"
-ARG SUMMARY="Pause Container for running pause within pods"
+ARG SUMMARY="Infrastructure/Pause Container for running pause within pods"
 ARG NAME="Pause Container Image"
 ARG MAINTAINER="The Platform team <platformteam@test.org>"
 
