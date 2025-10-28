@@ -9,6 +9,7 @@ The main directory containes several Containerfile that can be used to perform t
 
 Before running this playbook you will need the clients either already staged or you will need to set the download_clients boolean to true to have the playbook download the clients for you. 
 This playbook can only be run on an Internet connected bastion host with access to the location where the clients are hosted. If not please ensure you can download the exisiting clients from the binary repository (e.g. artifactory) and stage them appropriately (the client binaries are expected under context/_build/clients directory). 
+
 Once the clients have been staged or you have updated the clients.yml variable file to ensure that the clients will be downloaded, you need to make sure that you also update any necessary artifacts. For example if more ansible collections need to be included update the requirements.yml file included under the context/_build directory to reflect your intent. Also it is assumed that the collections can downloaded within the container. If not they will need to be staged under the context/_build directory as well. That will require a modification to the Containerfile so that the collection are installed from a local directory within the build container aftr having been copied in there similar to how the client binaries are being staged. 
 Once all of that is done, run the playbook as follows: 
 
@@ -19,5 +20,9 @@ To override the default Containerfile as well as associated container image name
 ```bash
 ansible-playbook --ask-vault-pass -v -e download_clients=false -e tooling_image_name=ubi8-bastion -e tooling_image_containerfile=context/Containerfile-ubi8 build-devops-container-images.yml 
 ```
+To override the default Containerfile as well as associated container image name and pushing the resuling image to a registry , use the following command where we are using the ubi8 Containerfile  
 
+```bash
+ansible-playbook --ask-vault-pass -v -e download_clients=false -e tooling_image_name=devops-ee-supported-rhel9 -e tooling_image_containerfile=ee-build/context/Containerfile-ee-supported-rhel9 -e dir_bundle_location=<path-to-save-image-bundle> -e registry_host_fqdn=<registry-fqdn> -e registry_auth_config=<path-to-registry-authfile> -e push_tooling_image=true -e local_repository=<repository> -e tooling_image_subrepository=<image-sub-repository>  build-devops-container-images.yml 
+```
 Note that before running any playbook always make sure you properly set the appropriate variables as well as any related vaulted items. 
