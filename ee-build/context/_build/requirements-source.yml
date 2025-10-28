@@ -1,0 +1,42 @@
+---
+roles:
+  - name: MindPointGroup.rhel8_stig
+  - name: MindPointGroup.rhel9_stig
+collections:
+  - name: amazon.aws
+    source: https://galaxy.ansible.com
+  - name: amazon.cloud
+    source: https://galaxy.ansible.com
+  - name: awx.awx
+    source: https://galaxy.ansible.com
+  - name: ansible.security
+    source: https://galaxy.ansible.com
+  - name: ansible.hub
+    source: https://galaxy.ansible.com
+  - name: ansible.network
+    source: https://galaxy.ansible.com
+  - name: ansible.utils
+    source: https://galaxy.ansible.com
+  - name: ansible.posix
+    source: https://galaxy.ansible.com
+  - name: ansible.netcommon
+    source: https://galaxy.ansible.com
+  - name: cloud.terraform
+    source: https://galaxy.ansible.com
+  - name: community.crypto
+    source: https://galaxy.ansible.com
+  - name: community.general
+    source: https://galaxy.ansible.com
+  - name: community.vmware
+    source: https://galaxy.ansible.com
+  - name: containers.podman
+    source: https://galaxy.ansible.com
+  - name: kubernetes.core
+    source: https://galaxy.ansible.com
+  - name: redhat_cop.controller_configuration
+    source: https://galaxy.ansible.com
+  - name: ansible.controller
+    source: https://console.redhat.com/api/automation-hub/content/published 
+  - name: redhat.openshift
+    source: https://console.redhat.com/api/automation-hub/content/published 
+
