@@ -36,7 +36,7 @@
       block:
         - name: '{{ ansible_name_module }} | Set Client packages download destination'
           ansible.builtin.set_fact:
-            clients_dir: "{{ playbook_dir }}/{{ tooling_image_build_context_dir_prefix }}/context/_build/clients"
+            clients_dir: "{{ playbook_dir }}/{{ tooling_image_build_context_dir }}/_build/clients"
           when:
             - not clients_dir is defined or clients_dir == ''
 
@@ -55,7 +55,7 @@
         - name: '{{ ansible_name_module }} | Download binaries'
           ansible.builtin.get_url:
             url: "{{ item.value.url }}{{ (item.value.pkg_version + '/') if item.value.pkg_version is defined and item.value.pkg_version != '' else ''}}{{ item.value.pkg_name }}{{ item.value.pkg_suffix }}"
-            dest: "{{ clients_dir }}/{{ item.value.pkg_name }}{{ item.value.pkg_extention }}"
+            dest: "{{ clients_dir }}/{{ item.value.pkg_name_short }}{{ item.value.pkg_extention }}"
           with_dict:
             - "{{ clients }}"
           when:
@@ -66,7 +66,7 @@
         - name: '{{ ansible_name_module }} | Download binaries from local repository'
           ansible.builtin.get_url:
             url: "{{ item.value.localurl }}{{ item.value.pkg_name }}{{ item.value.localpkg_suffix }}"
-            dest: "{{ clients_dir }}/{{ item.value.pkg_name }}{{ item.value.pkg_extention }}"
+            dest: "{{ clients_dir }}/{{ item.value.pkg_name_short }}{{ item.value.pkg_extention }}"
             url_username: "{{ registry_admin_username }}"
             url_password: "{{ registry_admin_password }}"
             force_basic_auth: 'true'
