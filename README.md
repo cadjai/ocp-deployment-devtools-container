@@ -26,3 +26,10 @@ To override the default Containerfile as well as associated container image name
 ansible-playbook --ask-vault-pass -v -e download_clients=false -e tooling_image_name=devops-ee-supported-rhel9 -e tooling_image_containerfile=ee-build/context/Containerfile-ee-supported-rhel9 -e dir_bundle_location=<path-to-save-image-bundle> -e registry_host_fqdn=<registry-fqdn> -e registry_auth_config=<path-to-registry-authfile> -e push_tooling_image=true -e local_repository=<repository> -e tooling_image_subrepository=<image-sub-repository>  build-devops-container-images.yml 
 ```
 Note that before running any playbook always make sure you properly set the appropriate variables as well as any related vaulted items. 
+
+
+Note that if you are fully disconnected and don't have access to a private automation hub and a pip server you can still build the custom EE,  provided that you have all of the collections and pip packages available locally. 
+
+if you are doing so you can update your containerfile to reflect the local install by copying the collections into the builder using the `COPY` instruction and similarly copying the pip packages into the builder using the same instruction. 
+Once done you can then update the appropriate command to reflect the local install using for example `/usr/bin/python3 -m pip install <local-path-to-pip-packages>` to install the pip packages or `RUN pushed /output/collections/ && ANSIBLE_GALAXY_DISABLE_GPG_VERIFY=1 ansible-galaxy collection install $ANSIBLE_GALAXY_CLI_COLLECTION_OPTS -r requirements.yml --offline --collections-path "/usr/share/ansible/collections" && popd` to install the locally available collections. See the `ee-build/context/Containerfile-ee-supported-rhel9-local` containerfile as a sample of how to update the containerfile. 
+
