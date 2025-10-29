@@ -1,9 +1,9 @@
-ARG BASE_IMAGE="registry.redhat.io/rhel8/podman:latest"
+ARG BASE_IMAGE="registry.redhat.io/rhel9/podman:latest"
 ARG PYCMD="/usr/bin/python3"
 ARG PKGMGR="/usr/bin/microdnf"
 ARG ANSIBLE_GALAXY_CLI_COLLECTION_OPTS=""
-RG SUMMARY="Bastion Container for running day two plus playbooks"
-ARG NAME="Bastion Container Image"
+RG SUMMARY="OCP Devops Container for running day two plus playbooks"
+ARG NAME="OCP Devops Container Image"
 ARG MAINTAINER="The Platform team <platformteam@test.org>"
 
 FROM $BASE_IMAGE 
@@ -25,9 +25,9 @@ LABEL summary="$SUMMARY" \
       usage="podman run -it --rm --name my-podman-ee-test localhost/podman-bastion bash " \
       maintainer="$MAINTAINER"
 
-RUN INSTALL_PKGS=" python38-devel python38-setuptools ansible-core \
+RUN INSTALL_PKGS=" python3.11-devel python3.11-setuptools ansible-core \
         bash-completion unzip dnf git jq skopeo bind-utils podman openscap-scanner httpd-tools \
-        wget python38 python38-pip zip vim-enhanced curl bzip2 python3-libselinux-2.9-8.el8.x86_64" && \
+        wget python3.11 python3.11-pip zip vim-enhanced curl bzip2 python3-libselinux-2.9-8.el9.x86_64" && \
     yum -y --setopt=tsflags=nodocs install $INSTALL_PKGS && \
     rpm -V $INSTALL_PKGS && \
     yum -y clean all --enablerepo='*' && \
