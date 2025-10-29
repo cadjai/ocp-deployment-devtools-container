@@ -1,6 +1,6 @@
 ---
 ### Client download controlling variables
-download_clients: true #Downlaod if not locally caches already
+download_clients: false #Downlaod if not locally caches already
 download_local: false #If you are disconnected and must use copies in artifactory
 
 clients:

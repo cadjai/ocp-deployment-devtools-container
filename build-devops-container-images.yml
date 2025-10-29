@@ -155,12 +155,12 @@
         - push_tooling_image | bool 
       register: oc_compliance_binary_downloaded 
 
-    - name: '{{ ansible_name_module }} | build Devspace Tooling container Image'
+    - name: '{{ ansible_name_module }} | build Container Tooling Image'
       ansible.builtin.shell: >
         podman --log-level=debug build {{ tooling_image_build_arg_nocache }} {{ tooling_image_build_arg_layersquash }} -f {{ tooling_image_containerfile }} -t {{ registry_host_fqdn }}/{{ local_repository }}/{{ tooling_image_subrepository }}/{{ tooling_image_name }}:latest-{{ today_date }} {{ tooling_image_build_arg }} --runtime-flag debug {{ tooling_image_build_context_dir }} 
       register: bastion_container_built
 
-    - name: '{{ ansible_name_module }} | tag OCP Deployment Tooling container Image'
+    - name: '{{ ansible_name_module }} | tag Container Tooling Image'
       ansible.builtin.shell: >
         podman tag {{ registry_host_fqdn }}/{{ local_repository }}/{{ tooling_image_subrepository }}/{{ tooling_image_name }}:latest-{{ today_date }} {{ registry_host_fqdn }}/{{ local_repository }}/{{ tooling_image_subrepository }}/{{ tooling_image_name }}:latest
       when:
@@ -168,7 +168,7 @@
         - push_tooling_image | bool 
       register: bastion_container_tagged
 
-    - name: '{{ ansible_name_module }} | push OCP Deployment Tooling container Image'
+    - name: '{{ ansible_name_module }} | push Container Tooling Image'
       ansible.builtin.shell: >
         podman push --authfile {{ registry_auth_config }} {{ item }} 
       loop:
@@ -179,7 +179,7 @@
         - push_tooling_image | bool 
       register: bastion_container_pushed
 
-    - name: '{{ ansible_name_module }} | podman:save | save OCP Deployment Tooling image'
+    - name: '{{ ansible_name_module }} | podman:save | save Container Tooling Image'
       ansible.builtin.shell: >
         podman save -o {{ dir_bundle_location }}/{{ tooling_image_name }}-latest-image-{{ today_date }}.tar \
           {{ registry_host_fqdn }}/{{ local_repository }}/{{ tooling_image_subrepository }}/{{ tooling_image_name }}:latest-{{ today_date }} 
