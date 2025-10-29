@@ -35,10 +35,13 @@ ARG ANSIBLE_INSTALL_REFS
 ARG PKGMGR
 
 COPY _build/scripts/ /output/scripts/
+COPY _build/collections/ /output/collections/
+COPY _build/pip_packages/ /output/packages/
 COPY _build/scripts/entrypoint /opt/builder/bin/entrypoint
 RUN echo This is a prepend base command!
 
 RUN /output/scripts/pip_install $PYCMD
+RUN ls -ls /output/packages/ && $PYCMD -m pip install /output/packages/
 RUN $PYCMD -m pip install --no-cache-dir $ANSIBLE_INSTALL_REFS
 RUN $PYCMD -m pip install -U pip
 
@@ -57,8 +60,7 @@ COPY _build /build
 WORKDIR /build
 
 RUN mkdir -p /usr/share/ansible
-RUN ansible-galaxy role install $ANSIBLE_GALAXY_CLI_ROLE_OPTS -r requirements.yml --roles-path "/usr/share/ansible/roles"
-RUN ANSIBLE_GALAXY_DISABLE_GPG_VERIFY=1 ansible-galaxy collection install $ANSIBLE_GALAXY_CLI_COLLECTION_OPTS -r requirements.yml --collections-path "/usr/share/ansible/collections"
+RUN pushed /output/collections/ && ANSIBLE_GALAXY_DISABLE_GPG_VERIFY=1 ansible-galaxy collection install $ANSIBLE_GALAXY_CLI_COLLECTION_OPTS -r requirements.yml --offline --collections-path "/usr/share/ansible/collections" && popd
 
 # Builder build stage
 FROM base as builder

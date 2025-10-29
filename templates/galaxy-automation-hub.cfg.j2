@@ -1,0 +1,13 @@
+[galaxy]
+server_list = automation_hub, galaxy_hub
+
+[galaxy_server.automation_hub]
+url = {{ (automation_hub_repos | selectattr('name', 'equalto', 'automation_hub' | map(attribute='name') | list).0 }} 
+auth_url = {{ (automation_hub_repos | selectattr('name', 'equalto', 'automation_hub' | map(attribute='name') | list).0 }}
+token = {{ (automation_hub_repyyos | selectattr('name', 'equalto', 'automation_hub' | map(attribute='token') | list).0 }} 
+
+[galaxy_server.galaxy_hub]
+url = {{ (automation_hub_repos | selectattr('name', 'equalto', 'galaxy_hub' | map(attribute='name') | list).0 }} 
+token = {{ (automation_hub_repyyos | selectattr('name', 'equalto', 'automation_hub' | map(attribute='token') | list).0 }} 
+
+

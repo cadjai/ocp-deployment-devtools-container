@@ -13,6 +13,7 @@ squash_layers: 'false'
 
 registry_auth_config: ''
 clients_dir: '{{ tooling_image_build_context_dir_prefix }}/{{ tooling_image_build_context_dir }}/_build/clients'
+download_clients: 'false'
 tooling_image_name: 'ocp-devops-tooling'
 registry_host_fqdn: ''
 local_repository: 'openshift4'
@@ -34,3 +35,13 @@ galaxy_repos:
     path: rh-certified
   - name: community
     path: community
+dir_bundle_location: ''
+use_automation_hub: 'true'
+automation_hub_repos:
+  - name: automation_hub 
+    url: https://console.redhat.com/api/automation-hub/content/published/
+    auth_url: https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token
+    token: ''
+  - name: galaxy_hub 
+    url: https://galaxy.ansible.com/api/ 
+    token: ''
