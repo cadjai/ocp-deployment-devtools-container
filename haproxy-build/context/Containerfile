@@ -1,0 +1,38 @@
+ARG BASE_IMAGE="registry.redhat.io/ubi9/ubi-minimal:latest"
+ARG PYCMD="/usr/bin/python3"
+ARG PKGMGR="/usr/bin/microdnf"
+ARG SUMMARY="HaProxy Container for running haproxy"
+ARG NAME="HAProxy Container Image"
+ARG MAINTAINER="The Platform team <platformteam@test.org>"
+
+LABEL summary="$SUMMARY" \
+      description="$SUMMARY" \
+      io.k8s.description="$SUMMARY" \
+      io.k8s.display-name="$NAME" \
+      name="$NAME" \
+      version="1" \
+      usage="podman run -it --rm --name my-haproxy-test localhost/haproxy bash " \
+      maintainer="$MAINTAINER"
+
+FROM $BASE_IMAGE 
+USER root
+ARG BASE_IMAGE
+ARG PYCMD
+ARG PKGMGR
+ARG SUMMARY
+ARG NAME
+ARG MAINTAINER
+
+COPY _build/rootfs/ /
+COPY _build/scripts/entrypoint /entrypoint
+RUN echo This is a prepend base command!
+
+RUN INSTALL_PKGS=" rsyslog haproxy" && set -ex && \
+     $PKGMGR -y update && \
+     $PKGMGR -y install $INSTALL_PKGS && \
+     $PKGMGR -y clean all && \
+     ln -sf /dev/stdout /var/log/haproxy.log  && \
+     haproxy -v || exit 1 && echo 
+
+ENTRYPOINT ["/entrypoint"]
+CMD        ["-f", "/haproxy.cfg"]

@@ -1,0 +1,54 @@
+#!/usr/bin/bash
+
+# Copyright: (c) 2023, Ansible Project
+# Apache License, Version 2.0 (see LICENSE.md or https://www.apache.org/licenses/LICENSE-2.0)
+
+# This entrypoint script papers over a number of problems that manifest under different container runtimes when
+# using ephemeral UIDs, then chain-execs to the requested init system and/or command. It is an implementation
+# detail for the convenience of Ansible execution environments built by ansible-builder.
+#
+# If we're running as a legit user that has an entry in /etc/passwd and a valid and writeable homedir, we're all good.
+#
+# If the current uid is not in /etc/passwd, we'll attempt to add it, but /etc/passwd is often not writable by GID 0.
+# `ansible-builder` defaults to making /etc/passwd writable by GID0 by default for maximum compatibility, but this is
+# not guaranteed. Some runtimes/wrappers (eg podman, cri-o) already create an /etc/passwd entry on the fly as-needed,
+# but they may set the homedir to something inaccessible (eg, `/`, WORKDIR).
+#
+# There are numerous cases where a missing or incorrect homedir in /etc/passwd are fatal. It breaks
+# `async` in ansible-core, things like `echo ~someuid`, and numerous other software packages that assume a valid POSIX
+# user configuration.
+#
+# If the homedir listed in /etc/passwd is not writeable by the current user (supposed to be primary GID0), we'll try
+# to make it writeable (except `/`), or select another writeable home directory from `$HOME`, `/runner`, or `/tmp` and
+# update $HOME (and /etc/passwd if possible) accordingly for the current process chain.
+#
+# This script is generally silent by default, but some likely-fatal cases will issue a brief warning to stderr. The
+# envvars described below can be set before container init to cause faster failures and/or get tracing output.
+
+# options:
+# EP_BASH_DEBUG=1 (enable set -x)
+# EP_DEBUG_TRACE=1 (enable debug trace to stderr)
+# EP_ON_ERROR=ignore/warn/fail (default ignore)
+
+set -eu
+
+set -o errexit
+set -o nounset
+
+readonly RSYSLOG_PID="/var/run/rsyslogd.pid"
+
+main() {
+  start_rsyslogd
+  start_lb "$@"
+}
+
+start_rsyslogd() {
+  rm -f $RSYSLOG_PID
+  rsyslogd
+}
+
+start_lb() {
+  exec haproxy -W -db "$@"
+}
+
+main "$@"
