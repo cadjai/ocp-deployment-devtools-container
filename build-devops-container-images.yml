@@ -159,6 +159,10 @@
       ansible.builtin.set_fact:
         tooling_image_build_arg_layersquash: "{{ ('--squash-all ') if squash_layers is defined and squash_layers | bool else '' }}"
 
+    - name: '{{ ansible_name_module }} | Set Tooling Image Build base image enable debug arg'
+      ansible.builtin.set_fact:
+        tooling_image_build_arg_debug: "{{ ('--log-level=debug ') if enable_debug is defined and enable_debug | bool else '' }}"
+
     - name: '{{ ansible_name_module }} | download oc compliance binary to be included into the build  Image'
       ansible.builtin.shell: >
         podman  run --authfile {{ registry_auth_config }}  --rm  -v {{ playbook_dir }}/context/_build:/mnt/out:Z {{ scan_results_export_image | default('registry.redhat.io/compliance/oc-compliance-rhel8:stable', true) }} /bin/cp /usr/bin/oc-compliance /mnt/out
@@ -171,7 +175,7 @@
 
     - name: '{{ ansible_name_module }} | build Container Tooling Image'
       ansible.builtin.shell: >
-        podman --log-level=debug build {{ tooling_image_build_arg_nocache }} {{ tooling_image_build_arg_layersquash }} -f {{ tooling_image_containerfile }} -t {{ registry_host_fqdn }}/{{ local_repository }}/{{ tooling_image_subrepository }}/{{ tooling_image_name }}:latest-{{ today_date }} {{ tooling_image_build_arg }} --runtime-flag debug {{ tooling_image_build_context_dir }} 
+        podman {{ tooling_image_build_arg_debug }} build {{ tooling_image_build_arg_nocache }} {{ tooling_image_build_arg_layersquash }} -f {{ tooling_image_containerfile }} -t {{ registry_host_fqdn }}/{{ local_repository }}/{{ tooling_image_subrepository }}/{{ tooling_image_name }}:latest-{{ today_date }} {{ tooling_image_build_arg }} --runtime-flag debug {{ tooling_image_build_context_dir }} 
       register: bastion_container_built
 
     - name: '{{ ansible_name_module }} | tag Container Tooling Image'
