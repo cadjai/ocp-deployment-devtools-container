@@ -41,6 +41,7 @@ RUN echo This is a prepend base command!
 RUN /output/scripts/pip_install $PYCMD
 RUN $PYCMD -m pip install --no-cache-dir $ANSIBLE_INSTALL_REFS
 RUN $PYCMD -m pip install -U pip
+RUN rm -rf /build/clients/*.tar.gz && rm -rf /build/clients/collections && rm -rf /build/clients/pip_packages
 
 # Galaxy build stage
 FROM base as galaxy
@@ -59,6 +60,7 @@ WORKDIR /build
 RUN mkdir -p /usr/share/ansible
 RUN ansible-galaxy role install $ANSIBLE_GALAXY_CLI_ROLE_OPTS -r requirements.yml --roles-path "/usr/share/ansible/roles"
 RUN ANSIBLE_GALAXY_DISABLE_GPG_VERIFY=1 ansible-galaxy collection install $ANSIBLE_GALAXY_CLI_COLLECTION_OPTS -r requirements.yml --collections-path "/usr/share/ansible/collections"
+RUN rm -rf /build/clients/*.tar.gz && rm -rf /build/clients/collections && rm -rf /build/clients/pip_packages
 
 # Builder build stage
 FROM base as builder
@@ -106,7 +108,7 @@ RUN chmod a+x /bin/helm
 #Install ccoctl 
 RUN tar xzf /build/clients/ccoctl.tar.gz -C /bin 
 RUN chmod a+x /bin/ccoctl
-
+RUN rm -rf /tmp/* && rm -rf /build/clients/*.tar.gz && rm -rf /build/clients/collections && rm -rf /build/clients/pip_packages
 
 # Final build stage
 FROM  install_binaries as final
