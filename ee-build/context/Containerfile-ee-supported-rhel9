@@ -111,7 +111,7 @@ RUN chmod a+x /bin/ccoctl
 RUN rm -rf /tmp/* && rm -rf /build/clients/*.tar.gz && rm -rf /build/clients/collections && rm -rf /build/clients/pip_packages
 
 # Final build stage
-FROM  install_binaries as final
+FROM  base as final
 ENV PIP_BREAK_SYSTEM_PACKAGES=1
 ARG EE_BASE_IMAGE
 ARG PYCMD
@@ -123,8 +123,8 @@ ARG PKGMGR
 
 RUN /output/scripts/check_ansible $PYCMD
 
+COPY --from=install_binaries /bin /bin
 COPY --from=galaxy /usr/share/ansible /usr/share/ansible
-
 COPY --from=builder /output/ /output/
 RUN /output/scripts/install-from-bindep && rm -rf /output/wheels
 RUN chmod ug+rw /etc/passwd
