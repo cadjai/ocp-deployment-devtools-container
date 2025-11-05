@@ -1,0 +1,17 @@
+#!/usr/local/bin/ansible-playbook --inventory=inventory
+- name: ' Konductor | Provision UPI Infra | configure-aws-sts.yml'
+  hosts: localhost
+  vars_files:
+    - 'vars/aws-sts.yml'
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    module: "generate-ccoctl-manifests"
+    ansible_name_module: " Konductor | Provision UPI Infra | {{ module }}"
+
+  pre_tasks:
+
+  tasks:
+    - name: '{{ ansible_name_module }} | import_tasks | Import ccoctl manifests tasks'
+      ansible.builtin.include_tasks: generate-ccoctl-manifests.yml 
+
+

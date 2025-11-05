@@ -1,0 +1,16 @@
+---
+cluster_name: ''
+ocp_release_version: '4.20.1'
+dir_platform: 'config'
+dir_cluster: 'config/cluster'
+openshift_install_cli: '/bin/openshit-install'
+openshift_cli: '/bin/oc'
+extract_ccoctl: 'false'
+ccoctl_cli: '/bin/ccoctl'
+aws_cli: 'aws'
+create_ccoctl_iam: 'false'
+use_private_s3_bucket: 'false'
+use_dry_run: 'true'
+ccoctl_manifest_tag_name: '{{ cluster_name }}-ccoctl'
+aws_region: ''
+
