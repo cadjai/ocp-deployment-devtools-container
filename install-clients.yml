@@ -1,0 +1,94 @@
+#!/usr/local/bin/ansible-playbook --inventory=inventory
+- name: ' Konductor | Provision UPI Infra | install-clients.yml' 
+  hosts: localhost 
+  vars_files:
+    #- 'vars/vault.yml'
+    - 'vars/container-build.yml'
+    - 'vars/clients.yml'
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    module: "build-ocp-deployment-devops-container-image"
+    ansible_name_module: " Konductor | Provision UPI Infra | {{ module }}"
+
+  pre_tasks:
+
+  tasks:
+    - name: '{{ ansible_name_module }} | Download Clients if necessary'
+      when:
+        - download_clients is defined
+        - download_clients | bool
+        - clients is defined 
+        - clients.items is defined 
+        - clients.items() | length > 0 
+      block:
+        - name: '{{ ansible_name_module }} | Set Client packages download destination'
+          ansible.builtin.set_fact:
+            client_staging: "/tmp/clients"
+          when:
+            - not client_staging is defined or client_staging == ''
+
+        - name: '{{ ansible_name_module }} | Ensure Client packages download destination exists'
+          ansible.builtin.file:
+            path: "{{ client_staging }}"
+            state: directory
+            mode: '0755'
+
+        - ansible.builtin.debug:
+            msg:
+              - "{{ item.value.url }}{{ (item.value.pkg_version + '/') if item.value.pkg_version is defined and item.value.pkg_version != '' else ''}}{{ item.value.pkg_name }}{{ item.value.pkg_suffix }}"
+              - "{{ client_staging }}/{{ item.value.pkg_name }}{{ item.value.pkg_extention }}"
+          with_dict: "{{ clients }}"
+
+        - name: '{{ ansible_name_module }} | Download binaries'
+          ansible.builtin.get_url:
+            url: "{{ item.value.url }}{{ (item.value.pkg_version + '/') if item.value.pkg_version is defined and item.value.pkg_version != '' else ''}}{{ item.value.pkg_name }}{{ item.value.pkg_suffix }}"
+            dest: "{{ client_staging }}/{{ item.value.pkg_name_short }}{{ item.value.pkg_extention }}"
+          with_dict:
+            - "{{ clients }}"
+          when:
+            - download_clients is defined
+            - download_clients | bool 
+            - not download_local is defined or not download_local | bool
+
+        - name: '{{ ansible_name_module }} | Download binaries from local repository'
+          ansible.builtin.get_url:
+            url: "{{ item.value.localurl }}{{ item.value.pkg_name }}{{ item.value.localpkg_suffix }}"
+            dest: "{{ client_staging }}/{{ item.value.pkg_name_short }}{{ item.value.pkg_extention }}"
+            url_username: "{{ registry_admin_username }}"
+            url_password: "{{ registry_admin_password }}"
+            force_basic_auth: 'true'
+            validate_certs: 'true'
+            client_cert: ''
+          with_dict:
+            - "{{ clients }}"
+          when:
+            - download_clients is defined
+            - download_clients | bool 
+            - download_local is defined
+            - download_local | bool
+
+    - name: '{{ ansible_name_module }} | Install Clients if necessary'
+      when:
+        - install_clients is defined
+        - install_clients | bool 
+      block:
+        - name: '{{ ansible_name_module }} | install tag archive'
+          become: true
+          ansible.builtin.shell: >
+            tar xzvf {{ client_staging }}/{{ item.value.pkg_name_short }}{{ item.value.pkg_extention }} -C /usr/bin/
+          when:
+            - "'tar.gz' in item.value.pkg_extention" 
+          with_dict:
+            - "{{ clients }}"
+          register: clients_tar_installed 
+
+        - name: '{{ ansible_name_module }} | install zip archive'
+          become: true
+          ansible.builtin.shell: >
+            unzip {{ client_staging }}/{{ item.value.pkg_name_short }}{{ item.value.pkg_extention }} -d /usr/bin
+          when:
+            - "'.zip' in item.value.pkg_extention" 
+          with_dict:
+            - "{{ clients }}"
+          register: clients_zip_installed 
+
