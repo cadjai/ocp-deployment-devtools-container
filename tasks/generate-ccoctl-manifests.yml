@@ -173,23 +173,6 @@
     - token_issuer_url_out.stdout != '' 
 
 ## Find does not seem to be able to find the search string. So using shell
-#######  find manifests with token issuer url placeholder snippets in files
-#- name: '{{ ansible_name_module }} | find |  Find all manifest files'
-#  ansible.builtin.find:
-#    path: "{{ ccoctl_manifests_dir }}/manifests"
-#    recurse: yes
-#    patterns: "\u003center_issuer_url_here\u003e:sub"
-#  register: token_issuer_url_manifests
-#
-########  Replace token issuer url placeholder snippets in manifest files
-#- name: '{{ ansible_name_module }} | replace | Replace TLS fingerprint URL placeholder string in all manifest files'
-#  ansible.builtin.replace:
-#    path: "{{ ccoctl_manifests_dir }}"
-#    regexp: "\u003center_issuer_url_here\u003e:sub"
-#    replace: "{{ token_issuer_url }}"
-#  loop: "{{ token_issuer_url_manifests.files }}"
-#  register: token_issuer_url_replaced 
-
 #######  find and update manifests with token issuer url placeholder snippets in files
 - name: '{{ ansible_name_module }} | find |  Find all manifest files'
   ansible.builtin.shell: |
@@ -234,23 +217,6 @@
     - issuer_fingerprint_raw_out.stdout != '' 
 
 ## Find does not seem to be able to find the search string. So using shell
-########  find manifests with tls fingerprint placeholder snippets in files
-#- name: '{{ ansible_name_module }} | find |  Find all manifest files'
-#  ansible.builtin.find:
-#    path: "{{ ccoctl_manifests_dir }}/manifests"
-#    recurse: yes
-#    contains: "<enter_tls_fingerprint_for_issuer_url_here>"
-#  register: tls_fingerprint_url_manifests
-#
-########  Replace tls fingerprint placeholder snippets in manifest files
-#- name: '{{ ansible_name_module }} | replace | Replace TLS fingerprint URL placeholder string in all manifest files'
-#  ansible.builtin.replace:
-#    path: "{{ ccoctl_manifests_dir }}/manifests"
-#    regexp: "<enter_tls_fingerprint_for_issuer_url_here>"
-#    replace: "{{ issuer_fingerprint }}"
-#  loop: "{{ tls_fingerprint_url_manifests.files }}"
-#  register: tls_fingerprint_url_replaced 
-
 - name: '{{ ansible_name_module }} | find |  Find all manifest files'
   ansible.builtin.shell: |
     grep -rl '<enter_tls_fingerprint_for_issuer_url_here>' {{ ccoctl_manifests_dir }} | xargs sed -i "s~<enter_tls_fingerprint_for_issuer_url_here>~{{ issuer_fingerprint }}~g"
