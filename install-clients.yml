@@ -7,7 +7,7 @@
     - 'vars/clients.yml'
   vars:
     ansible_python_interpreter: /usr/bin/python3
-    module: "build-ocp-deployment-devops-container-image"
+    module: "install-clients"
     ansible_name_module: " Konductor | Provision UPI Infra | {{ module }}"
 
   pre_tasks:
@@ -72,9 +72,60 @@
         - install_clients is defined
         - install_clients | bool 
       block:
-        - name: '{{ ansible_name_module }} | install tag archive'
+        - name: '{{ ansible_name_module }} | Ensure aws staging destination exists'
+          become: true
+          ansible.builtin.file:
+            path: "{{ aws_staging_dir }}"
+            state: directory
+            mode: '0755'
+
+        - name: '{{ ansible_name_module }} | extract aws archive '
+          ansible.builtin.shell: |
+            unzip -o {{ client_staging }}/{{ clients['awscliv2'].pkg_name_short }}{{ clients['awscliv2'].pkg_extention }} -d {{ aws_staging_dir }}
+          register: aws_bin_out
+
+        - name: '{{ ansible_name_module }} | print extracted aws archive output'
+          ansible.builtin.debug:
+            var: aws_bin_out
+            verbosity: 2
+
+        - name: '{{ ansible_name_module }} | install aws bin'
+          become: yes
+          ansible.builtin.shell: >
+            bash {{ aws_staging_dir }}/aws/install --update -b /usr/bin
+          register: aws_bin_install_out
+
+        - name: '{{ ansible_name_module }} | print installed aws archive output'
+          ansible.builtin.debug:
+            var: aws_bin_install_out
+            verbosity: 2
+
+        - name: '{{ ansible_name_module }} | list installed aws bin'
+          become: yes
+          ansible.builtin.shell: >
+            ls -l /usr/bin | grep aws
+          register: aws_bin_list_out
+
+        - name: '{{ ansible_name_module }} | print installed aws archive list output'
+          ansible.builtin.debug:
+            var: aws_bin_list_out
+            verbosity: 2
+
+        - name: '{{ ansible_name_module }} | chmod installed aws archive'
           become: true
           ansible.builtin.shell: >
+            chmod a+x /usr/bin/aws
+          when:
+            - aws_bin_install_out is defined
+            - aws_bin_install_out.rc is defined
+            - aws_bin_install_out.rc == 0
+            - aws_bin_install_out.stdout is defined
+            - aws_bin_install_out.stdout != ''
+            - "'/usr/bin/aws' in aws_bin_install_out.stdout"
+
+        - name: '{{ ansible_name_module }} | install tar archive'
+          become: true
+          ansible.builtin.shell: | 
             tar xzvf {{ client_staging }}/{{ item.value.pkg_name_short }}{{ item.value.pkg_extention }} -C /usr/bin/
           when:
             - "'tar.gz' in item.value.pkg_extention" 
@@ -82,13 +133,86 @@
             - "{{ clients }}"
           register: clients_tar_installed 
 
+        - name: '{{ ansible_name_module }} | print  tar archive install output 1 of 2'
+          ansible.builtin.debug:
+            var: clients_tar_installed
+            verbosity: 2
+              
+        - name: '{{ ansible_name_module }} | print tar archive install output 2 of 2'
+          ansible.builtin.debug:
+            var: item 
+            verbosity: 2
+          loop: "{{ clients_tar_installed.results }}"
+              
         - name: '{{ ansible_name_module }} | install zip archive'
           become: true
-          ansible.builtin.shell: >
-            unzip {{ client_staging }}/{{ item.value.pkg_name_short }}{{ item.value.pkg_extention }} -d /usr/bin
+          ansible.builtin.shell: | 
+            unzip -o -f -u {{ client_staging }}/{{ item.value.pkg_name_short }}{{ item.value.pkg_extention }} -d /usr/bin
           when:
             - "'.zip' in item.value.pkg_extention" 
+            - "not 'aws' in item.value.pkg_name_short"
           with_dict:
             - "{{ clients }}"
           register: clients_zip_installed 
 
+        - name: '{{ ansible_name_module }} | print  zip archive install output 1 of 2'
+          ansible.builtin.debug:
+            var: clients_zip_installed
+            verbosity: 2
+              
+        - name: '{{ ansible_name_module }} | print zip archive install output 2 of 2'
+          ansible.builtin.debug:
+            var: item 
+            verbosity: 2
+          loop: "{{ clients_zip_installed.results }}"
+              
+        - name: '{{ ansible_name_module }} | find installed helm bin'
+          become: true
+          ansible.builtin.shell: > 
+            ls -l /usr/bin | grep helm | awk '{print $9}'
+          register: helm_bin_out 
+
+        - name: '{{ ansible_name_module }} | rename installed helm bin'
+          become: true
+          ansible.builtin.shell: > 
+            mv -f /usr/bin/{{ item }} /usr/bin/helm
+          loop: "{{ helm_bin_out.stdout_lines }}"
+          when:
+            - helm_bin_out is defined
+            - helm_bin_out.rc is defined
+            - helm_bin_out.rc == 0
+            - helm_bin_out.stdout_lines is defined
+            - helm_bin_out.stdout_lines | length > 0 
+            - item != 'helm'
+
+        - name: '{{ ansible_name_module }} | list of  installed binaries '
+          become: true
+          ansible.builtin.shell: | 
+            ls -l /usr/bin | awk '{print $9}' | egrep -i "{{ binary_cli_search_list |join('|') }}"
+          register: clients_bin_out 
+
+        - name: '{{ ansible_name_module }} | print  zip archive install output 1 of 2'
+          ansible.builtin.debug:
+            var: clients_bin_out 
+            verbosity: 2
+              
+        - name: '{{ ansible_name_module }} | chmod installed oc archive'
+          become: true
+          ansible.builtin.shell: | 
+            chmod a+x /usr/bin/oc
+          when:
+            - "'oc' in clients_zip_installed.results"
+
+        - name: '{{ ansible_name_module }} | chmod installed tar archive'
+          become: true
+          ansible.builtin.shell: | 
+            chmod a+x /usr/bin/{{ item }}
+          loop: "{{ clients_bin_out.stdout_lines }}" 
+          register: clients_tar_chmoded 
+
+        - name: '{{ ansible_name_module }} | Ensure aws staging destination does not exists'
+          become: true
+          ansible.builtin.file:
+            path: "{{ aws_staging_dir }}"
+            state: absent 
+            mode: '0755'

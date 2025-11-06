@@ -77,4 +77,11 @@ clients:
     localpkg_suffix: '-exe-linux-x86_64.zip'
     pkg_extention: '.zip'
 
-
+aws_staging_dir: '/root/aws'  ### use findmnt -u T <dir> to ensure the dir is not mounted with noexec
+binary_cli_search_list:
+  - oc-mirror
+  - openshift
+  - ccoctl
+  - helm
+  - terraform
+  - kubectl
