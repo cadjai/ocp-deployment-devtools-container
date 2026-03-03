@@ -1,0 +1,40 @@
+ARG BASE_IMAGE="registry.redhat.io/rhel9/nginx-126:latest"
+ARG PYCMD="/usr/bin/python3"
+ARG PKGMGR="/usr/bin/dnf"
+ARG SUMMARY="Nginx Container for running nginx s3 gateway"
+ARG NAME="Nginx S3 Gateway Container Image"
+ARG MAINTAINER="The Platform team <platformteam@test.org>"
+
+LABEL summary="$SUMMARY" \
+      description="$SUMMARY" \
+      io.k8s.description="$SUMMARY" \
+      io.k8s.display-name="$NAME" \
+      name="$NAME" \
+      version="1" \
+      usage="podman run -it --rm --name my-nginx-s3-gateway-test localhost/nginx bash " \
+      maintainer="$MAINTAINER"
+
+FROM $BASE_IMAGE 
+USER root
+ARG BASE_IMAGE
+ARG PYCMD
+ARG PKGMGR
+ARG SUMMARY
+ARG NAME
+ARG MAINTAINER
+
+COPY _build/rootfs/etc opt/appt-root/etc
+COPY _build/rootfs/docker-entrypoint.d /docker-entrypoint.d
+RUN echo This is a prepend base command!
+
+RUN mkdir -p /opt/app-root/src/cache/nginx/s3_proxy && \
+    chown nginx:nginx opt/app-root/src/cache/nginx/s3_proxy && \
+    find /docker-entrypoint.d -type -f \( -name '*.sh' -or -name '*.envsh' \) -exec chmod -v +x {} \; 
+
+RUN INSTALL_PKGS=" rsyslog nginx curl libedit nginx-module-njs" && set -ex && \
+     $PKGMGR -y update && \
+     $PKGMGR -y install $INSTALL_PKGS && \
+     $PKGMGR -y clean all && \
+     ln -sf /dev/stdout /var/log/nginx.log  && \
+     nginx -v || exit 1 && echo 
+
