@@ -23,18 +23,33 @@ ARG SUMMARY
 ARG NAME
 ARG MAINTAINER
 
+# Proxy cache env vars
+ENV PROXY_CACHE_MAX_SIZE=10g
+ENV PROXY_CACHE_INACTIVE=60m
+ENV PROXY_CACHE_SLICE_SIZE=1m
+ENV PROXY_CACHE_VALID_OK=1h
+ENV PROXY_CACHE_VALID_NOTFOUND=1m
+ENV PROXY_CACHE_VALID_FORBIDDEN=30s
+
+# CORS env vars
+ENV CORS_ENABLED=0
+ENV CORS_ALLOW_PRIVATE_NETWORK_ACCESS=""
+
+# S3 proxy env vars
+ENV DIRECTORY_LISTING_PATH_PREFIX=""
+ENV STRIP_LEADING_DIRECTORY_PATH=""
+ENV PREFIX_LEADING_DIRECTORY_PATH=""
+
 COPY _build/rootfs/etc opt/appt-root/etc
 COPY _build/rootfs/docker-entrypoint.d /docker-entrypoint.d
 RUN echo This is a prepend base command!
 
 RUN mkdir -p /opt/app-root/src/cache/nginx/s3_proxy && \
-    chown nginx:nginx opt/app-root/src/cache/nginx/s3_proxy && \
-    find /docker-entrypoint.d -type -f \( -name '*.sh' -or -name '*.envsh' \) -exec chmod -v +x {} \; 
+    chown nginx:nginx /opt/app-root/src/cache/nginx/s3_proxy && \
+    find /docker-entrypoint.d -type f \( -name '*.sh' -or -name '*.envsh' \) -exec chmod -v +x {} \;  
 
-RUN INSTALL_PKGS=" rsyslog nginx curl libedit nginx-module-njs" && set -ex && \
+RUN INSTALL_PKGS=" rsyslog nginx curl libedit nginx-module-njs nginx-module-xslt" && set -ex && \
      $PKGMGR -y update && \
      $PKGMGR -y install $INSTALL_PKGS && \
-     $PKGMGR -y clean all && \
-     ln -sf /dev/stdout /var/log/nginx.log  && \
-     nginx -v || exit 1 && echo 
+     $PKGMGR -y clean all 
 
